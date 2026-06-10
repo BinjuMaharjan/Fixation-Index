@@ -1,0 +1,533 @@
+# LOAD PACKAGES
+
+library(hierfstat)
+library(ggplot2)
+
+
+# READ DATA
+
+RCBC2S1_FST <- read.csv(
+  "imputed_genotypes_RCBC2S1.csv",
+  header = TRUE,
+  row.names = 1
+)
+
+# EXTRACT POPULATIONS
+
+group_RCBC2S1 <- sub(
+  "_.*",
+  "",
+  rownames(RCBC2S1_FST)
+)
+
+
+# CREATE HIERFSTAT DATASET
+
+
+RCBC2S1_hf <- data.frame(
+  pop = as.numeric(as.factor(group_RCBC2S1)),
+  RCBC2S1_FST
+)
+
+RCBC2S1_hf[-1] <- lapply(
+  RCBC2S1_hf[-1],
+  as.numeric
+)
+
+# PAIRWISE FST
+
+fst_matrix_RCBC2S1 <- pairwise.WCfst(
+  RCBC2S1_hf
+)
+
+pop_names <- levels(
+  as.factor(group_RCBC2S1)
+)
+
+rownames(fst_matrix_RCBC2S1) <- pop_names
+colnames(fst_matrix_RCBC2S1) <- pop_names
+
+# BOOTSTRAP CONFIDENCE INTERVALS
+
+
+boot_res <- boot.ppfst(
+  dat = RCBC2S1_hf,
+  nboot = 1000
+)
+
+rownames(boot_res$ll) <- pop_names
+colnames(boot_res$ll) <- pop_names
+
+rownames(boot_res$ul) <- pop_names
+colnames(boot_res$ul) <- pop_names
+
+
+# SIGNIFICANCE MATRIX
+# "*" IF LOWER CI > 0
+#################################################
+
+sig <- matrix(
+  "",
+  nrow = nrow(fst_matrix_RCBC2S1),
+  ncol = ncol(fst_matrix_RCBC2S1),
+  dimnames = dimnames(fst_matrix_RCBC2S1)
+)
+
+sig[boot_res$ll > 0] <- "*"
+
+diag(sig) <- ""
+
+
+# LABEL MATRIX
+
+
+labels <- matrix(
+  paste0(
+    round(fst_matrix_RCBC2S1, 3),
+    "\n",
+    sig
+  ),
+  nrow = nrow(fst_matrix_RCBC2S1),
+  dimnames = dimnames(fst_matrix_RCBC2S1)
+)
+
+
+# KEEP UPPER TRIANGLE ONLY
+
+
+fst_tri <- fst_matrix_RCBC2S1
+
+fst_tri[lower.tri(fst_tri, diag = TRUE)] <- NA
+
+labels[lower.tri(labels, diag = TRUE)] <- NA
+
+# LONG FORMAT
+
+fst_long <- as.data.frame(
+  as.table(fst_tri)
+)
+
+colnames(fst_long) <- c(
+  "Population1",
+  "Population2",
+  "FST"
+)
+
+label_long <- as.data.frame(
+  as.table(labels)
+)
+
+fst_long$Label <- label_long$Freq
+
+
+
+# EXPORT TABLES
+
+
+write.csv(
+  round(fst_matrix_RCBC2S1, 3),
+  "Pairwise_FST_RCBC2S1.csv"
+)
+
+write.csv(
+  round(boot_res$ll, 3),
+  "Pairwise_FST_LowerCI_RCBC2S1.csv"
+)
+
+write.csv(
+  round(boot_res$ul, 3),
+  "Pairwise_FST_UpperCI_RCBC2S1.csv"
+)
+
+# HEATMAP
+
+
+ggplot(
+  fst_long,
+  aes(
+    x = Population1,
+    y = Population2,
+    fill = FST
+  )
+) +
+  geom_tile() +
+  
+  geom_text(
+    aes(label = Label)
+  ) +
+  
+  scale_fill_gradient(
+    low = "lightblue",
+    high = "darkgreen",
+    na.value = "grey90"
+  ) +
+  
+  scale_x_discrete(drop = FALSE) +
+  scale_y_discrete(drop = FALSE) +
+  
+  coord_fixed() +
+  
+  theme_minimal() +
+  
+  theme(
+    text = element_text(
+      family = "serif",
+      size = 12
+    ),
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    )
+  ) +
+  
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "FST"
+  )
+#=============================================================================
+# READ DATA
+
+RCBC3_FST <- read.csv(
+  "imputed_genotypes_RCBC3.csv",
+  header = TRUE,
+  row.names = 1
+)
+
+# EXTRACT POPULATIONS
+
+group_RCBC3 <- sub(
+  "_.*",
+  "",
+  rownames(RCBC3_FST)
+)
+
+
+# CREATE HIERFSTAT DATASET
+
+
+RCBC3_hf <- data.frame(
+  pop = as.numeric(as.factor(group_RCBC3)),
+  RCBC3_FST)
+
+RCBC3_hf[-1] <- lapply(RCBC3_hf[-1],as.numeric)
+
+# PAIRWISE FST
+
+fst_matrix_RCBC3 <- pairwise.WCfst(
+  RCBC3_hf
+)
+
+pop_names_RCBC3 <- levels(
+  as.factor(group_RCBC3))
+
+rownames(fst_matrix_RCBC3) <- pop_names_RCBC3
+colnames(fst_matrix_RCBC3) <- pop_names_RCBC3
+
+# BOOTSTRAP CONFIDENCE INTERVALS
+
+
+boot_res_RCBC3 <- boot.ppfst(
+  dat = RCBC3_hf,
+  nboot = 1000)
+
+rownames(boot_res_RCBC3$ll) <- pop_names_RCBC3
+colnames(boot_res_RCBC3$ll) <- pop_names_RCBC3
+
+rownames(boot_res_RCBC3$ul) <- pop_names_RCBC3
+colnames(boot_res_RCBC3$ul) <- pop_names_RCBC3
+
+
+# SIGNIFICANCE MATRIX
+# "*" IF LOWER CI > 0
+#################################################
+
+sig_RCBC3 <- matrix(
+  "",
+  nrow = nrow(fst_matrix_RCBC3),
+  ncol = ncol(fst_matrix_RCBC3),
+  dimnames = dimnames(fst_matrix_RCBC3))
+
+sig_RCBC3[boot_res_RCBC3$ll > 0] <- "*"
+
+diag(sig_RCBC3) <- ""
+
+
+# LABEL MATRIX
+
+
+labels_RCBC3 <- matrix(
+  paste0(round(fst_matrix_RCBC3, 3),
+         "\n", 
+         sig_RCBC3),
+  nrow = nrow(fst_matrix_RCBC3),
+  dimnames = dimnames(fst_matrix_RCBC3)
+)
+
+
+# KEEP UPPER TRIANGLE ONLY
+
+
+fst_tri_RCBC3 <- fst_matrix_RCBC3
+
+fst_tri_RCBC3[lower.tri(fst_tri_RCBC3, diag = TRUE)] <- NA
+
+labels_RCBC3[lower.tri(labels_RCBC3, diag = TRUE)] <- NA
+
+# LONG FORMAT
+
+fst_long_RCBC3 <- as.data.frame(
+  as.table(fst_tri_RCBC3)
+)
+
+colnames(fst_long_RCBC3) <- c(
+  "Population1",
+  "Population2",
+  "FST"
+)
+
+label_long_RCBC3 <- as.data.frame(
+  as.table(labels_RCBC3)
+)
+
+fst_long_RCBC3$Label_RCBC3 <- label_long_RCBC3$Freq
+
+
+
+# EXPORT TABLES
+
+
+write.csv(
+  round(fst_matrix_RCBC3, 3),
+  "Pairwise_FST_RCBC3.csv"
+)
+
+write.csv(
+  round(boot_res_RCBC3$ll, 3),
+  "Pairwise_FST_LowerCI_RCBC31.csv"
+)
+
+write.csv(
+  round(boot_res_RCBC3$ul, 3),
+  "Pairwise_FST_UpperCI_RCBC3.csv"
+)
+
+# HEATMAP
+
+
+ggplot(
+  fst_long_RCBC3,
+  aes(
+    x = Population1,
+    y = Population2,
+    fill = FST
+  )
+) +
+  geom_tile() +
+  
+  geom_text(
+    aes(label = Label_RCBC3)
+  ) +
+  
+  scale_fill_gradient(
+    low = "lightblue",
+    high = "darkgreen",
+    na.value = "grey90"
+  ) +
+  
+  scale_x_discrete(drop = FALSE) +
+  scale_y_discrete(drop = FALSE) +
+  
+  coord_fixed() +
+  
+  theme_minimal() +
+  
+  theme(
+    text = element_text(
+      family = "serif",
+      size = 12
+    ),
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    )
+  ) +
+  
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "FST"
+  )
+#=================================================================================
+# READ DATA
+
+MrS_FST <- read.csv(
+  "imputed_genotypes.csv",
+  header = TRUE,
+  row.names = 1
+)
+
+# EXTRACT POPULATIONS
+
+group_MrS <- sub(
+  "_.*",
+  "",
+  rownames(MrS_FST)
+)
+
+
+# CREATE HIERFSTAT DATASET
+
+
+MrS_hf <- data.frame(
+  pop = as.numeric(as.factor(group_MrS)),
+  MrS_FST)
+
+MrS_hf[-1] <- lapply(MrS_hf[-1],as.numeric)
+
+# PAIRWISE FST
+
+fst_matrix_MrS <- pairwise.WCfst(
+  MrS_hf
+)
+
+pop_names_MrS <- levels(
+  as.factor(group_MrS))
+
+rownames(fst_matrix_MrS) <- pop_names_MrS
+colnames(fst_matrix_MrS) <- pop_names_MrS
+
+# BOOTSTRAP CONFIDENCE INTERVALS
+
+
+boot_res_MrS <- boot.ppfst(
+  dat = MrS_hf,
+  nboot = 1000)
+
+rownames(boot_res_MrS$ll) <- pop_names_MrS
+colnames(boot_res_MrS$ll) <- pop_names_MrS
+
+rownames(boot_res_MrS$ul) <- pop_names_MrS
+colnames(boot_res_MrS$ul) <- pop_names_MrS
+
+
+# SIGNIFICANCE MATRIX
+# "*" IF LOWER CI > 0
+#################################################
+
+sig_MrS <- matrix(
+  "",
+  nrow = nrow(fst_matrix_MrS),
+  ncol = ncol(fst_matrix_MrS),
+  dimnames = dimnames(fst_matrix_MrS))
+
+sig_MrS[boot_res_MrS$ll > 0] <- "*"
+
+diag(sig_MrS) <- ""
+
+
+# LABEL MATRIX
+
+
+labels_MrS <- matrix(
+  paste0(round(fst_matrix_MrS, 3),
+         "\n", 
+         sig_MrS),
+  nrow = nrow(fst_matrix_MrS),
+  dimnames = dimnames(fst_matrix_MrS)
+)
+
+
+# KEEP UPPER TRIANGLE ONLY
+
+
+fst_tri_MrS <- fst_matrix_MrS
+
+fst_tri_MrS[lower.tri(fst_tri_MrS, diag = TRUE)] <- NA
+
+labels_MrS[lower.tri(labels_MrS, diag = TRUE)] <- NA
+
+# LONG FORMAT
+
+fst_long_MrS <- as.data.frame(
+  as.table(fst_tri_MrS)
+)
+
+colnames(fst_long_MrS) <- c(
+  "Population1",
+  "Population2",
+  "FST"
+)
+
+label_long_MrS <- as.data.frame(
+  as.table(labels_MrS)
+)
+
+fst_long_MrS$Label_MrS <- label_long_MrS$Freq
+
+
+
+# EXPORT TABLES
+
+
+write.csv(
+  round(fst_matrix_MrS, 3),
+  "Pairwise_FST_MrS.csv"
+)
+
+write.csv(
+  round(boot_res_MrS$ll, 3),
+  "Pairwise_FST_LowerCI_MrS.csv"
+)
+
+write.csv(
+  round(boot_res_MrS$ul, 3),
+  "Pairwise_FST_UpperCI_MrS.csv"
+)
+
+# HEATMAP
+
+
+ggplot(
+  fst_long_MrS,
+  aes(
+    x = Population1,
+    y = Population2,
+    fill = FST
+  )
+) +
+  geom_tile() +
+  
+  geom_text(
+    aes(label = Label_MrS)
+  ) +
+  
+  scale_fill_gradient(
+    low = "lightblue",
+    high = "darkgreen",
+    na.value = "grey90"
+  ) +
+  
+  scale_x_discrete(drop = FALSE) +
+  scale_y_discrete(drop = FALSE) +
+  
+  coord_fixed() +
+  
+  theme_minimal() +
+  
+  theme(
+    text = element_text(
+      family = "serif",
+      size = 12
+    ),
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    )
+  ) +
+  
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "FST"
+  )
